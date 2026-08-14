@@ -1,0 +1,191 @@
+{% extends "layout.html" %}
+
+{% block title %}Equipos - Gestión de Activos IT{% endblock %}
+
+{% block content %}
+<header>
+    <h1>
+        <i class="fas fa-network-wired"></i>
+        Gestión de Equipos y Vulnerabilidades
+    </h1>
+</header>
+
+<!-- Tabla de equipos -->
+<div class="card">
+    <h2><i class="fas fa-list"></i> Equipos Registrados</h2>
+    <div style="overflow-x: auto;">
+        <table id="equiposTable">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Tipo</th>
+                    <th>Característica</th>
+                    <th>SO / Versión</th>
+                    <th>IP / Hostname</th>
+                    <th>Ambiente</th>
+                    <th>Ubicación</th>
+                    <th>Fecha</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="equiposBody">
+                {% for equipo in equipos %}
+                <tr data-id="{{ equipo.id }}">
+                    <td>{{ equipo.id }}</td>
+                    <td><span class="tag">{{ equipo.tipo }}</span></td>
+                    <td><strong>{{ equipo.caracteristica }}</strong></td>
+                    <td>
+                        {% if equipo.sistema_operativo or equipo.version %}
+                            {{ equipo.sistema_operativo or '' }}
+                            {% if equipo.version %}({{ equipo.version }}){% endif %}
+                        {% else %}
+                            <span class="text-muted">N/A</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if equipo.ip or equipo.hostname %}
+                            {{ equipo.hostname or '' }}
+                            {% if equipo.ip %}({{ equipo.ip }}){% endif %}
+                        {% else %}
+                            <span class="text-muted">N/A</span>
+                        {% endif %}
+                    </td>
+                    <td><span class="tag">{{ equipo.ambiente or 'N/A' }}</span></td>
+                    <td>{{ equipo.ubicacion or 'N/A' }}</td>
+                    <td>{{ equipo.fecha_creacion.strftime('%d/%m/%Y') }}</td>
+                    <td>
+                        <button class="btn btn-sm btn-vulnerabilidades" data-id="{{ equipo.id }}">
+                            <i class="fas fa-shield-alt"></i> Vulns
+                        </button>
+                        <button class="btn btn-sm btn-edit" data-id="{{ equipo.id }}">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-eliminar" data-id="{{ equipo.id }}">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Formulario para agregar equipo (minimizable) -->
+<div class="card">
+    <div class="card-header-collapsible" onclick="toggleForm()" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
+        <h2 style="margin: 0; display: flex; align-items: center; gap: 8px;">
+            <i class="fas fa-plus-circle"></i> Agregar Equipo
+        </h2>
+        <button class="btn btn-toggle" id="toggleFormBtn" style="background: none; border: none; font-size: 1.2rem; cursor: pointer; color: var(--muted); padding: 4px 12px;">
+            ▶
+        </button>
+    </div>
+    <div id="formContent" style="display: none; padding-top: 16px; animation: slideDown 0.3s ease;">
+        <div class="form-grid">
+            <!-- Primera fila: Datos básicos -->
+            <div class="form-group">
+                <label for="tipoInput">Tipo de Equipo *</label>
+                <input type="text" id="tipoInput" placeholder="Ej: FortiGate, Windows Server" list="tipoSuggestions" required>
+                <datalist id="tipoSuggestions">
+                    <option value="FortiGate">
+                    <option value="Windows Server">
+                    <option value="Linux Server">
+                    <option value="Cisco Router">
+                    <option value="VMware ESXi">
+                    <option value="AWS EC2">
+                    <option value="Azure VM">
+                    <option value="Docker Container">
+                    <option value="Kubernetes Cluster">
+                    <option value="Firewall">
+                    <option value="Switch">
+                    <option value="Database Server">
+                </datalist>
+            </div>
+            <div class="form-group">
+                <label for="caracteristicaInput">Característica / Modelo *</label>
+                <input type="text" id="caracteristicaInput" placeholder="Ej: 30G, Server 2016, 7.0.17" required>
+            </div>
+
+            <!-- Segunda fila: Propietario y ubicación -->
+            <div class="form-group">
+                <label for="propietarioInput">Propietario del activo</label>
+                <input type="text" id="propietarioInput" placeholder="Ej: Dirección de TI, Gerencia Financiera">
+            </div>
+            <div class="form-group">
+                <label for="ubicacionInput">Ubicación física</label>
+                <input type="text" id="ubicacionInput" placeholder="Ej: Data Center Principal, Oficina Central, Cloud">
+            </div>
+
+            <!-- Tercera fila: Área y tipo de información -->
+            <div class="form-group">
+                <label for="areaInput">Área responsable</label>
+                <input type="text" id="areaInput" placeholder="Ej: Seguridad, Operaciones, Infraestructura">
+            </div>
+            <div class="form-group">
+                <label for="tipoInformacionInput">Tipo de información procesada</label>
+                <input type="text" id="tipoInformacionInput" placeholder="Ej: Financiera, Personal, Estratégica, Confidencial">
+            </div>
+
+            <!-- Cuarta fila: Dependencias y SO -->
+            <div class="form-group">
+                <label for="dependenciasInput">Dependencias del sistema</label>
+                <textarea id="dependenciasInput" rows="1" placeholder="Ej: Base de datos Oracle, API REST, Active Directory"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="sistemaOperativoInput">Sistema Operativo</label>
+                <input type="text" id="sistemaOperativoInput" placeholder="Ej: Windows Server 2019, Ubuntu 22.04, FortiOS 7.0">
+            </div>
+
+            <!-- Quinta fila: Versión y red -->
+            <div class="form-group">
+                <label for="versionInput">Versión del sistema/software</label>
+                <input type="text" id="versionInput" placeholder="Ej: 2019, 22.04, 7.0.17, v1.2.3">
+            </div>
+            <div class="form-group">
+                <label for="ipInput">Dirección IP</label>
+                <input type="text" id="ipInput" placeholder="Ej: 192.168.1.100, 10.0.0.50">
+            </div>
+
+            <!-- Sexta fila: Hostname y ambiente -->
+            <div class="form-group">
+                <label for="hostnameInput">Hostname</label>
+                <input type="text" id="hostnameInput" placeholder="Ej: SRV-DC-01, FW-PROD-01">
+            </div>
+            <div class="form-group">
+                <label for="ambienteInput">Ambiente</label>
+                <select id="ambienteInput">
+                    <option value="">Seleccionar ambiente</option>
+                    <option value="Producción">Producción</option>
+                    <option value="QA">QA / Pruebas</option>
+                    <option value="Desarrollo">Desarrollo</option>
+                    <option value="Pre-producción">Pre-producción</option>
+                    <option value="Disaster Recovery">Disaster Recovery</option>
+                </select>
+            </div>
+
+            <!-- Séptima fila: Estado y fecha revisión -->
+            <div class="form-group">
+                <label for="estadoInput">Estado del activo</label>
+                <select id="estadoInput">
+                    <option value="">Seleccionar estado</option>
+                    <option value="Activo">Activo</option>
+                    <option value="En mantenimiento">En mantenimiento</option>
+                    <option value="Retirado">Retirado</option>
+                    <option value="En implementación">En implementación</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="fechaRevisionInput">Fecha de última revisión</label>
+                <input type="date" id="fechaRevisionInput">
+            </div>
+        </div>
+        <div class="form-actions">
+            <button id="agregarEquipoBtn" class="btn primary">
+                <i class="fas fa-save"></i> Agregar Equipo
+            </button>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

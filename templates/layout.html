@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Gestión de Activos IT{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="brand">
+                <i class="fas fa-server"></i>
+                <span>Activos IT</span>
+            </div>
+            <nav>
+                <ul>
+                    <li class="menu-category">Principal</li>
+                    <li class="submenu">
+                        <ul>
+                            <li><a href="{{ url_for('index') }}" class="{{ 'active' if request.path == url_for('index') else '' }}"><i class="fas fa-desktop"></i> Equipos</a></li>
+                            <li><a href="{{ url_for('dashboard_page') }}" class="{{ 'active' if request.path == url_for('dashboard_page') else '' }}"><i class="fas fa-chart-line"></i> Dashboard</a></li>
+                            <li><a href="#" id="showPendientes"><i class="fas fa-exclamation-triangle"></i> Pendientes</a></li>
+                            <li><a href="#" id="showCompletadas"><i class="fas fa-check-circle"></i> Completadas</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </nav>
+            <div class="contact">
+                <span>v1.0 - Gestión de Vulnerabilidades</span>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main">
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- TODOS LOS MODALES AQUÍ (disponibles en todas las páginas)     -->
+    <!-- ============================================================ -->
+
+    <!-- Modal de Vulnerabilidades -->
+    <div id="vulnerabilidadesModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-shield-alt"></i> Vulnerabilidades</h2>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="equipoInfo" style="margin-bottom: 15px; padding: 10px; background: var(--bg); border-radius: 8px;">
+                    <strong>Tipo:</strong> <span id="modalTipo"></span> | 
+                    <strong>Característica:</strong> <span id="modalCaracteristica"></span> | 
+                    <strong>Criticidad:</strong> <span id="modalCriticidad"></span>
+                </div>
+                <div id="vulnerabilidadesContainer">
+                    <p class="text-muted">No hay vulnerabilidades registradas para este equipo.</p>
+                </div>
+                <div style="margin-top: 15px;">
+                    <button id="consultarVulnerabilidadesBtn" class="btn primary">
+                        <i class="fas fa-brain"></i> Consultar Vulnerabilidades con IA 
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Editar Equipo -->
+    <div id="editarEquipoModal" class="modal">
+        <div class="modal-content" style="max-width: 800px;">
+            <div class="modal-header">
+                <h2><i class="fas fa-edit"></i> Editar Equipo</h2>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-grid">
+                    <!-- Datos básicos -->
+                    <div class="form-group">
+                        <label for="editTipoInput">Tipo de Equipo *</label>
+                        <input type="text" id="editTipoInput" placeholder="Ej: FortiGate, Windows Server" list="editTipoSuggestions">
+                        <datalist id="editTipoSuggestions">
+                            <option value="FortiGate">
+                            <option value="Windows Server">
+                            <option value="Linux Server">
+                            <option value="Cisco Router">
+                            <option value="VMware ESXi">
+                            <option value="AWS EC2">
+                            <option value="Azure VM">
+                            <option value="Docker Container">
+                            <option value="Firewall">
+                            <option value="Switch">
+                        </datalist>
+                    </div>
+                    <div class="form-group">
+                        <label for="editCaracteristicaInput">Característica / Modelo *</label>
+                        <input type="text" id="editCaracteristicaInput" placeholder="Ej: 30G, Server 2016, 7.0.17">
+                    </div>
+
+                    <!-- Propietario y ubicación -->
+                    <div class="form-group">
+                        <label for="editPropietarioInput">Propietario del activo</label>
+                        <input type="text" id="editPropietarioInput" placeholder="Ej: Dirección de TI">
+                    </div>
+                    <div class="form-group">
+                        <label for="editUbicacionInput">Ubicación</label>
+                        <input type="text" id="editUbicacionInput" placeholder="Ej: Data Center, Oficina Central">
+                    </div>
+
+                    <!-- Área y tipo de información -->
+                    <div class="form-group">
+                        <label for="editAreaInput">Área responsable</label>
+                        <input type="text" id="editAreaInput" placeholder="Ej: Seguridad, Operaciones">
+                    </div>
+                    <div class="form-group">
+                        <label for="editTipoInformacionInput">Tipo de información procesada</label>
+                        <input type="text" id="editTipoInformacionInput" placeholder="Ej: Financiera, Personal, Estratégica">
+                    </div>
+
+                    <!-- Dependencias y SO -->
+                    <div class="form-group" style="grid-column: span 2;">
+                        <label for="editDependenciasInput">Dependencias del sistema</label>
+                        <textarea id="editDependenciasInput" rows="2" placeholder="Ej: Base de datos Oracle, API REST, Active Directory"></textarea>
+                    </div>
+
+                    <!-- SO y versión -->
+                    <div class="form-group">
+                        <label for="editSistemaOperativoInput">Sistema Operativo</label>
+                        <input type="text" id="editSistemaOperativoInput" placeholder="Ej: Windows Server 2019, Ubuntu 22.04">
+                    </div>
+                    <div class="form-group">
+                        <label for="editVersionInput">Versión del sistema/software</label>
+                        <input type="text" id="editVersionInput" placeholder="Ej: 2019, 22.04, 7.0.17">
+                    </div>
+
+                    <!-- IP y Hostname -->
+                    <div class="form-group">
+                        <label for="editIpInput">Dirección IP</label>
+                        <input type="text" id="editIpInput" placeholder="Ej: 192.168.1.100">
+                    </div>
+                    <div class="form-group">
+                        <label for="editHostnameInput">Hostname</label>
+                        <input type="text" id="editHostnameInput" placeholder="Ej: SRV-DC-01, FW-PROD-01">
+                    </div>
+
+                    <!-- Ambiente y estado -->
+                    <div class="form-group">
+                        <label for="editAmbienteInput">Ambiente</label>
+                        <select id="editAmbienteInput">
+                            <option value="">Seleccionar</option>
+                            <option value="Producción">Producción</option>
+                            <option value="QA">QA / Pruebas</option>
+                            <option value="Desarrollo">Desarrollo</option>
+                            <option value="Pre-producción">Pre-producción</option>
+                            <option value="Disaster Recovery">Disaster Recovery</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="editEstadoInput">Estado del activo</label>
+                        <select id="editEstadoInput">
+                            <option value="">Seleccionar</option>
+                            <option value="Activo">Activo</option>
+                            <option value="En mantenimiento">En mantenimiento</option>
+                            <option value="Retirado">Retirado</option>
+                            <option value="En implementación">En implementación</option>
+                        </select>
+                    </div>
+
+                    <!-- Fecha revisión -->
+                    <div class="form-group">
+                        <label for="editFechaRevisionInput">Fecha de última revisión</label>
+                        <input type="date" id="editFechaRevisionInput">
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button id="guardarEdicionEquipoBtn" class="btn primary">
+                        <i class="fas fa-save"></i> Guardar cambios
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Vulnerabilidades Pendientes -->
+    <div id="pendientesModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-exclamation-triangle"></i> Vulnerabilidades Pendientes</h2>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="pendientesContainer">
+                    <p class="text-muted">No hay vulnerabilidades pendientes.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Vulnerabilidades Completadas -->
+    <div id="completadasModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-check-circle"></i> Vulnerabilidades Completadas</h2>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="completadasContainer">
+                    <p class="text-muted">No hay vulnerabilidades completadas.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Gestión de Remediación -->
+    <div id="remediacionModal" class="modal" style="z-index: 10000;">
+        <div class="modal-content" style="max-width: 700px;">
+            <div class="modal-header">
+                <h2><i class="fas fa-tools"></i> Gestión de Remediación</h2>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="remediacionInfo" style="margin-bottom: 15px; padding: 10px; background: var(--bg); border-radius: 8px;">
+                    <strong>Código:</strong> <span id="remediacionCodigo"></span> | 
+                    <strong>Criticidad:</strong> <span id="remediacionCriticidad"></span>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="remediacionResponsable">Responsable</label>
+                        <input type="text" id="remediacionResponsable" placeholder="Seleccionar responsable" list="responsablesList">
+                        <datalist id="responsablesList">
+                            <!-- Se llenará dinámicamente desde la tabla usuarios -->
+                        </datalist>
+                    </div>
+                    <div class="form-group">
+                        <label for="remediacionFechaObjetivo">Fecha objetivo</label>
+                        <input type="date" id="remediacionFechaObjetivo">
+                    </div>
+                    <div class="form-group">
+                        <label for="remediacionPrioridad">Prioridad de remediación</label>
+                        <select id="remediacionPrioridad">
+                            <option value="">Seleccionar</option>
+                            <option value="Alta">Alta</option>
+                            <option value="Media">Media</option>
+                            <option value="Baja">Baja</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="remediacionEstado">Estado</label>
+                        <select id="remediacionEstado">
+                            <option value="Pendiente">Pendiente</option>
+                            <option value="En proceso">En proceso</option>
+                            <option value="Completada">Completada</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="grid-column: span 2;">
+                        <label for="remediacionObservaciones">Observaciones</label>
+                        <textarea id="remediacionObservaciones" rows="3" placeholder="Observaciones sobre la remediación"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="remediacionEvidencia">Evidencia adjunta</label>
+                        <input type="text" id="remediacionEvidencia" placeholder="URL o referencia de la evidencia">
+                    </div>
+                    <div class="form-group">
+                        <label for="remediacionRiesgoResidual">Riesgo residual</label>
+                        <select id="remediacionRiesgoResidual">
+                            <option value="">Seleccionar</option>
+                            <option value="Alto">Alto</option>
+                            <option value="Medio">Medio</option>
+                            <option value="Bajo">Bajo</option>
+                            <option value="Ninguno">Ninguno</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="avanceInfoContainer"></div>
+                <div class="form-actions" style="margin-top: 15px;">
+                    <button id="guardarRemediacionBtn" class="btn primary">
+                        <i class="fas fa-save"></i> Guardar cambios
+                    </button>
+                    <button id="verHistorialBtn" class="btn secondary">
+                        <i class="fas fa-history"></i> Ver historial
+                    </button>
+                </div>
+                <div id="historialContainer" style="margin-top: 15px; display: none; max-height: 150px; overflow-y: auto; background: var(--bg); padding: 10px; border-radius: 8px;">
+                    <h4>Historial de cambios</h4>
+                    <div id="historialLista">
+                        <p class="text-muted">No hay cambios registrados.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Detalle de Vulnerabilidad Pendiente -->
+    <div id="detallePendienteModal" class="modal" style="z-index: 10001;">
+        <div class="modal-content" style="max-width: 700px;">
+            <div class="modal-header">
+                <h2><i class="fas fa-info-circle"></i> Detalle de Vulnerabilidad</h2>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="detallePendienteContainer">
+                    <p class="text-muted">Cargando detalle...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,101 @@
+{% extends "layout.html" %}
+
+{% block title %}Dashboard - Gestión de Activos IT{% endblock %}
+
+{% block content %}
+<header>
+    <h1>
+        <i class="fas fa-chart-line"></i>
+        Dashboard General
+    </h1>
+</header>
+
+<!-- Dashboard Grid 2x2 -->
+<div class="dashboard-grid-2x2">
+    <!-- Tarjeta 1: Indicador de riesgo general -->
+    <div class="card dashboard-card risk-card">
+        <div class="card-header">
+            <h2><i class="fas fa-shield-alt"></i> Riesgo General</h2>
+            <span class="badge-risk" id="riskLevel">-</span>
+        </div>
+        <div class="metric-large" id="riskIndex">0%</div>
+        <div class="risk-details">
+            <div class="risk-bar">
+                <div class="risk-bar-fill" id="riskBarFill" style="width: 0%;"></div>
+            </div>
+            <p class="text-muted" id="riskAnalisis">Calculando riesgo...</p>
+        </div>
+        <div class="risk-stats">
+            <span><i class="fas fa-server"></i> <span id="totalEquipos">0</span> equipos</span>
+            <span><i class="fas fa-bug"></i> <span id="totalVulns">0</span> vulnerabilidades</span>
+        </div>
+    </div>
+
+    <!-- Tarjeta 2: Vulnerabilidades por criticidad -->
+    <div class="card dashboard-card">
+        <h2><i class="fas fa-chart-pie"></i> Por Criticidad</h2>
+        <div class="criticidad-grid">
+            <div class="criticidad-item danger">
+                <span class="criticidad-label">Alta</span>
+                <strong id="criticaAlta">0</strong>
+                <div class="criticidad-bar" style="width: 0%;"></div>
+            </div>
+            <div class="criticidad-item warning">
+                <span class="criticidad-label">Media</span>
+                <strong id="criticaMedia">0</strong>
+                <div class="criticidad-bar" style="width: 0%;"></div>
+            </div>
+            <div class="criticidad-item success">
+                <span class="criticidad-label">Baja</span>
+                <strong id="criticaBaja">0</strong>
+                <div class="criticidad-bar" style="width: 0%;"></div>
+            </div>
+        </div>
+        <p class="text-muted" style="font-size: 0.75rem; margin-top: 8px;">
+            <i class="fas fa-info-circle"></i> Solo vulnerabilidades activas
+        </p>
+    </div>
+
+    <!-- Tarjeta 3: Estado de remediación -->
+    <div class="card dashboard-card">
+        <h2><i class="fas fa-tasks"></i> Estado de Remediación</h2>
+        <div class="remediacion-grid">
+            <div class="remediacion-item">
+                <div class="remediacion-icon pendiente">⏳</div>
+                <div>
+                    <span class="remediacion-label">Pendientes</span>
+                    <strong id="vulnPendientes">0</strong>
+                </div>
+            </div>
+            <div class="remediacion-item">
+                <div class="remediacion-icon en-proceso">🔄</div>
+                <div>
+                    <span class="remediacion-label">En Proceso</span>
+                    <strong id="vulnEnProceso">0</strong>
+                </div>
+            </div>
+            <div class="remediacion-item">
+                <div class="remediacion-icon completada">✅</div>
+                <div>
+                    <span class="remediacion-label">Completadas</span>
+                    <strong id="vulnCompletadas">0</strong>
+                </div>
+            </div>
+        </div>
+        <div class="progress-porcentaje">
+            <span>Progreso: <strong id="vulnPorcentajeCorregidas">0%</strong></span>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill" style="width: 0%;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tarjeta 4: Top 5 activos más expuestos -->
+    <div class="card dashboard-card">
+        <h2><i class="fas fa-fire"></i> Activos más expuestos</h2>
+        <div id="topActivosContainer" class="top-activos-list">
+            <p class="text-muted" style="padding: 20px 0; text-align: center;">Cargando...</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
