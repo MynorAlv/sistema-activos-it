@@ -3,11 +3,14 @@
 {% block title %}Dashboard - Gestión de Activos IT{% endblock %}
 
 {% block content %}
-<header>
-    <h1>
+<header style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 20px;">
+    <h1 style="margin: 0;">
         <i class="fas fa-chart-line"></i>
         Dashboard General
     </h1>
+    <button onclick="abrirModalExportacion('ejecutivo')" class="btn primary" style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; font-weight: 500; font-size: 0.95rem; cursor: pointer;">
+        <i class="fas fa-file-pdf"></i> Exportar Informe Ejecutivo
+    </button>
 </header>
 
 <!-- Dashboard Grid 2x2 -->
@@ -61,21 +64,21 @@
         <h2><i class="fas fa-tasks"></i> Estado de Remediación</h2>
         <div class="remediacion-grid">
             <div class="remediacion-item">
-                <div class="remediacion-icon pendiente">⏳</div>
+                <div class="remediacion-icon pendiente"><i class="fas fa-hourglass-half"></i></div>
                 <div>
                     <span class="remediacion-label">Pendientes</span>
                     <strong id="vulnPendientes">0</strong>
                 </div>
             </div>
             <div class="remediacion-item">
-                <div class="remediacion-icon en-proceso">🔄</div>
+                <div class="remediacion-icon en-proceso"><i class="fas fa-arrows-rotate"></i></div>
                 <div>
                     <span class="remediacion-label">En Proceso</span>
                     <strong id="vulnEnProceso">0</strong>
                 </div>
             </div>
             <div class="remediacion-item">
-                <div class="remediacion-icon completada">✅</div>
+                <div class="remediacion-icon completada"><i class="fas fa-check-circle"></i></div>
                 <div>
                     <span class="remediacion-label">Completadas</span>
                     <strong id="vulnCompletadas">0</strong>

@@ -1,0 +1,67 @@
+{% extends "layout.html" %}
+
+{% block title %}Evaluación NIST CSF - Gestión de Activos IT{% endblock %}
+
+{% block content %}
+<header style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 20px;">
+    <h1 style="margin: 0; display: flex; align-items: center; gap: 10px;">
+        <i class="fas fa-certificate" style="color: var(--accent);"></i>
+        Evaluación de Ciberseguridad NIST CSF 2.0
+    </h1>
+    <button onclick="abrirModalExportacion('nist')" class="btn primary" style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; font-weight: 500; font-size: 0.95rem; cursor: pointer;">
+        <i class="fas fa-file-pdf"></i> Exportar Evaluación NIST
+    </button>
+</header>
+
+<!-- Resumen Principal de Madurez -->
+<div class="card" style="margin-bottom: 20px; background: var(--panel); border: 1px solid var(--card-border); padding: 24px;">
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; align-items: center;">
+        <div>
+            <span style="font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--muted);">
+                MARCO DE CIBERSEGURIDAD NIST (CSF 2.0)
+            </span>
+            <h2 id="nistTierTitulo" style="margin: 8px 0; font-size: 1.6rem; color: var(--text);">
+                Calculando madurez...
+            </h2>
+            <p id="nistTierDesc" style="color: var(--muted); font-size: 0.95rem; line-height: 1.5; margin-bottom: 16px;">
+                Evaluando la postura de ciberseguridad a partir de la calidad del inventario y el ciclo de vida de vulnerabilidades.
+            </p>
+            <div style="display: flex; gap: 20px; font-size: 0.85rem; color: var(--muted);">
+                <span><i class="fas fa-server"></i> <strong id="nistTotalEquipos" style="color: var(--text);">0</strong> activos auditados</span>
+                <span><i class="fas fa-bug"></i> <strong id="nistTotalVulns" style="color: var(--text);">0</strong> vulnerabilidades evaluadas</span>
+            </div>
+        </div>
+
+        <div style="background: var(--bg); border: 1px solid var(--card-border); border-radius: 12px; padding: 20px; text-align: center;">
+            <span style="font-size: 0.85rem; color: var(--muted); font-weight: 600;">Índice Global de Madurez</span>
+            <div id="nistScoreGlobal" style="font-size: 3rem; font-weight: 800; color: var(--accent); margin: 8px 0; line-height: 1;">
+                0%
+            </div>
+            <div style="background: #e2e8f0; height: 8px; border-radius: 4px; overflow: hidden; margin: 12px auto 6px auto; max-width: 260px;">
+                <div id="nistBarraGlobal" style="height: 100%; width: 0%; background: var(--accent); transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1); border-radius: 4px;"></div>
+            </div>
+            <span id="nistNivelLabel" style="font-size: 0.8rem; font-weight: 600; color: var(--muted);">Nivel de Implementación</span>
+        </div>
+    </div>
+</div>
+
+<!-- Desglose por las 6 Funciones de NIST CSF -->
+<div style="margin-bottom: 24px;">
+    <h2 style="margin-bottom: 14px; font-size: 1.25rem; display: flex; align-items: center; gap: 8px;">
+        <i class="fas fa-cubes"></i> Puntuación por Funciones del Marco NIST
+    </h2>
+    <div id="nistFuncionesContainer" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px;">
+        <p class="text-muted" style="padding: 20px 0;">Cargando evaluación NIST...</p>
+    </div>
+</div>
+
+<!-- Recomendaciones y Plan de Acción -->
+<div class="card" style="background: var(--panel); border: 1px solid var(--card-border);">
+    <h2 style="margin-bottom: 16px; font-size: 1.2rem; display: flex; align-items: center; gap: 8px;">
+        <i class="fas fa-list-check" style="color: var(--accent);"></i> Plan de Acción y Recomendaciones Prioritarias
+    </h2>
+    <div id="nistRecomendacionesContainer">
+        <p class="text-muted">Analizando recomendaciones...</p>
+    </div>
+</div>
+{% endblock %}

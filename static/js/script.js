@@ -18,6 +18,10 @@ document.addEventListener('DOMContentLoaded', function() {
         cargarDashboard();
     }
 
+    if (document.getElementById('nistScoreGlobal')) {
+        cargarEvaluacionNIST();
+    }
+
     // Cargar usuarios para la lista de responsables
     cargarResponsables();
 });
@@ -61,6 +65,23 @@ function initEventListeners() {
     const consultarVulnerabilidadesBtn = document.getElementById('consultarVulnerabilidadesBtn');
     if (consultarVulnerabilidadesBtn) {
         consultarVulnerabilidadesBtn.addEventListener('click', consultarVulnerabilidades);
+    }
+
+    const exportModalBtnVer = document.getElementById('exportModalBtnVer');
+    if (exportModalBtnVer) {
+        exportModalBtnVer.addEventListener('click', function() {
+            if (!exportContextoActual) return;
+            const sep = exportContextoActual.urlBase.includes('?') ? '&' : '?';
+            descargarReportePDF(exportContextoActual.urlBase + sep + 'view=1', exportContextoActual.nombreArchivo, this, true);
+        });
+    }
+
+    const exportModalBtnDescargar = document.getElementById('exportModalBtnDescargar');
+    if (exportModalBtnDescargar) {
+        exportModalBtnDescargar.addEventListener('click', function() {
+            if (!exportContextoActual) return;
+            descargarReportePDF(exportContextoActual.urlBase, exportContextoActual.nombreArchivo, this, false);
+        });
     }
 
     const showPendientesLink = document.getElementById('showPendientes');
@@ -525,9 +546,9 @@ async function cargarDashboard() {
                         <span>${escapeHtml(activo.caracteristica || '')}</span>
                     </div>
                     <div class="activo-metricas">
-                        <span>🛡️ ${activo.total_vulnerabilidades || 0}</span>
-                        <span>⏳ ${activo.pendientes || 0}</span>
-                        <span>✅ ${activo.completadas || 0}</span>
+                        <span><i class="fas fa-shield-alt"></i> ${activo.total_vulnerabilidades || 0}</span>
+                        <span><i class="fas fa-hourglass-half"></i> ${activo.pendientes || 0}</span>
+                        <span><i class="fas fa-check-circle"></i> ${activo.completadas || 0}</span>
                     </div>
                 </div>
             `).join('');
@@ -585,33 +606,33 @@ async function cargarVulnerabilidades(id) {
             let html = `<div class="texto">`;
             
             if (codigo) {
-                html += `<div class="vuln-codigo"><span class="badge info">🔍 ${escapeHtml(codigo)}</span></div>`;
+                html += `<div class="vuln-codigo"><span class="badge info"><i class="fas fa-search"></i> ${escapeHtml(codigo)}</span></div>`;
             }
             
             html += `<div class="vuln-descripcion">${escapeHtml(descripcion)}</div>`;
             
             if (impacto) {
-                html += `<div class="vuln-impacto"><strong>💥 Impacto:</strong> ${escapeHtml(impacto)}</div>`;
+                html += `<div class="vuln-impacto"><strong><i class="fas fa-bolt"></i> Impacto:</strong> ${escapeHtml(impacto)}</div>`;
             }
             
             if (planRemediacion) {
-                html += `<div class="vuln-plan"><strong>🔧 Plan de remediación:</strong> ${escapeHtml(planRemediacion)}</div>`;
+                html += `<div class="vuln-plan"><strong><i class="fas fa-wrench"></i> Plan de remediación:</strong> ${escapeHtml(planRemediacion)}</div>`;
             }
             
             html += `<div class="vuln-meta">`;
             
             if (criticidadDisplay) {
-                html += `<span class="badge ${criticidadClass}">⚠️ ${escapeHtml(criticidadDisplay)}</span>`;
+                html += `<span class="badge ${criticidadClass}"><i class="fas fa-exclamation-triangle"></i> ${escapeHtml(criticidadDisplay)}</span>`;
             }
             
             if (tiempoEstimado) {
-                html += `<span class="badge tiempo">⏱️ ${escapeHtml(tiempoEstimado)}</span>`;
+                html += `<span class="badge tiempo"><i class="fas fa-clock"></i> ${escapeHtml(tiempoEstimado)}</span>`;
             }
             
-            html += `<span class="badge ${estadoClass}">📌 ${escapeHtml(estadoRemediacion)}</span>`;
+            html += `<span class="badge ${estadoClass}"><i class="fas fa-tag"></i> ${escapeHtml(estadoRemediacion)}</span>`;
             
             if (vuln.responsable) {
-                html += `<span class="badge responsable">👤 ${escapeHtml(vuln.responsable)}</span>`;
+                html += `<span class="badge responsable"><i class="fas fa-user"></i> ${escapeHtml(vuln.responsable)}</span>`;
             }
             
             html += `</div>`;
@@ -894,7 +915,7 @@ async function completarVulnerabilidad(id) {
             throw new Error('Error al completar vulnerabilidad');
         }
         
-        mostrarNotificacion('Vulnerabilidad completada ✅', 'success');
+        mostrarNotificacion('Vulnerabilidad completada', 'success');
         cargarDashboard();
         
     } catch (error) {
@@ -950,7 +971,7 @@ async function mostrarPendientes() {
         container.innerHTML = '';
         
         if (vulnerabilidades.length === 0) {
-            container.innerHTML = '<p class="text-muted">🎉 No hay vulnerabilidades pendientes.</p>';
+            container.innerHTML = '<p class="text-muted"><i class="fas fa-check-circle" style="color: var(--success);"></i> No hay vulnerabilidades pendientes.</p>';
             return;
         }
         
@@ -981,20 +1002,20 @@ async function mostrarPendientes() {
             
             html += `<div class="vuln-header" style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 8px;">`;
             if (codigo) {
-                html += `<span class="badge info">🔍 ${escapeHtml(codigo)}</span>`;
+                html += `<span class="badge info"><i class="fas fa-search"></i> ${escapeHtml(codigo)}</span>`;
             }
             if (criticidadDisplay) {
-                html += `<span class="badge ${criticidadClass}">⚠️ ${escapeHtml(criticidadDisplay)}</span>`;
+                html += `<span class="badge ${criticidadClass}"><i class="fas fa-exclamation-triangle"></i> ${escapeHtml(criticidadDisplay)}</span>`;
             }
             if (tiempoEstimado) {
-                html += `<span class="badge tiempo">⏱️ ${escapeHtml(tiempoEstimado)}</span>`;
+                html += `<span class="badge tiempo"><i class="fas fa-clock"></i> ${escapeHtml(tiempoEstimado)}</span>`;
             }
-            html += `<span class="badge ${estadoClass}">📌 ${escapeHtml(estadoRemediacion)}</span>`;
+            html += `<span class="badge ${estadoClass}"><i class="fas fa-tag"></i> ${escapeHtml(estadoRemediacion)}</span>`;
             html += `</div>`;
             
             if (equipoInfo && equipoInfo.tipo) {
                 html += `<div style="margin-bottom: 8px;">`;
-                html += `<span class="badge equipo-id">🖥️ ${escapeHtml(equipoInfo.tipo)} ${escapeHtml(equipoInfo.caracteristica || '')}</span>`;
+                html += `<span class="badge equipo-id"><i class="fas fa-desktop"></i> ${escapeHtml(equipoInfo.tipo)} ${escapeHtml(equipoInfo.caracteristica || '')}</span>`;
                 html += `</div>`;
             }
             
@@ -1093,9 +1114,9 @@ async function mostrarDetallePendiente(id) {
         
         // Determinar color del estado
         const estadoColors = {
-            'Pendiente': { bg: '#fffbeb', color: '#f59e0b', icon: '⏳' },
-            'En proceso': { bg: '#eff6ff', color: '#3b82f6', icon: '🔄' },
-            'Completada': { bg: '#f0fdf4', color: '#16a34a', icon: '✅' }
+            'Pendiente': { bg: '#fffbeb', color: '#f59e0b', icon: '<i class="fas fa-hourglass-half"></i>' },
+            'En proceso': { bg: '#eff6ff', color: '#3b82f6', icon: '<i class="fas fa-arrows-rotate"></i>' },
+            'Completada': { bg: '#f0fdf4', color: '#16a34a', icon: '<i class="fas fa-check-circle"></i>' }
         };
         const estadoColor = estadoColors[vuln.estado_remediacion] || estadoColors['Pendiente'];
         
@@ -1115,10 +1136,10 @@ async function mostrarDetallePendiente(id) {
                 <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 12px;">
                     <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
                         <h3 style="margin: 0; color: ${criticidadColor.text}; font-size: 1.1rem;">
-                            🔍 ${vuln.codigo || 'Sin código'}
+                            <i class="fas fa-search"></i> ${vuln.codigo || 'Sin código'}
                         </h3>
                         <span style="font-size: 0.85rem; color: ${criticidadColor.text}; font-weight: 500; background: ${criticidadColor.bg}; padding: 2px 10px; border-radius: 12px; border: 1px solid ${criticidadColor.border};">
-                            ⚠️ ${vuln.criticidad || 'N/A'}
+                            <i class="fas fa-exclamation-triangle"></i> ${vuln.criticidad || 'N/A'}
                         </span>
                         <span style="background: ${estadoColor.bg}; color: ${estadoColor.color}; padding: 2px 12px; border-radius: 12px; font-weight: 500; font-size: 0.85rem; border: 1px solid ${estadoColor.color};">
                             ${estadoColor.icon} ${vuln.estado_remediacion || 'Pendiente'}
@@ -1140,7 +1161,7 @@ async function mostrarDetallePendiente(id) {
         if (vuln.responsable) {
             html += `
                 <div style="display: flex; align-items: center; gap: 5px; font-size: 0.85rem;">
-                    <span style="font-weight: 600;">👤</span>
+                    <span style="font-weight: 600;"><i class="fas fa-user"></i></span>
                     <span>${escapeHtml(vuln.responsable)}</span>
                 </div>
             `;
@@ -1150,7 +1171,7 @@ async function mostrarDetallePendiente(id) {
         if (vuln.fecha_objetivo) {
             html += `
                 <div style="display: flex; align-items: center; gap: 5px; font-size: 0.85rem;">
-                    <span style="font-weight: 600;">📅</span>
+                    <span style="font-weight: 600;"><i class="fas fa-calendar-alt"></i></span>
                     <span>${escapeHtml(vuln.fecha_objetivo)}</span>
                 </div>
             `;
@@ -1159,7 +1180,7 @@ async function mostrarDetallePendiente(id) {
         // % Avance con barra pequeña y 2 decimales
         html += `
             <div style="display: flex; align-items: center; gap: 6px; font-size: 0.85rem;">
-                <span style="font-weight: 600;">📊</span>
+                <span style="font-weight: 600;"><i class="fas fa-chart-line"></i></span>
                 <span style="font-weight: 500;">${avanceDisplay}</span>
                 <div style="background: #e5e7eb; height: 5px; width: 60px; border-radius: 3px; overflow: hidden;">
                     <div style="height: 100%; width: ${avanceNumero}%; background: ${colorAvance}; border-radius: 3px;"></div>
@@ -1171,7 +1192,7 @@ async function mostrarDetallePendiente(id) {
         if (vuln.prioridad_remediacion) {
             html += `
                 <div style="display: flex; align-items: center; gap: 5px; font-size: 0.85rem;">
-                    <span style="font-weight: 600;">🎯</span>
+                    <span style="font-weight: 600;"><i class="fas fa-bullseye"></i></span>
                     <span>${escapeHtml(vuln.prioridad_remediacion)}</span>
                 </div>
             `;
@@ -1188,7 +1209,7 @@ async function mostrarDetallePendiente(id) {
             const riesgoColor = riesgoColors[vuln.riesgo_residual] || '#6b7280';
             html += `
                 <div style="display: flex; align-items: center; gap: 5px; font-size: 0.85rem;">
-                    <span style="font-weight: 600;">⚠️</span>
+                    <span style="font-weight: 600;"><i class="fas fa-exclamation-triangle"></i></span>
                     <span style="color: ${riesgoColor}; font-weight: 500;">${escapeHtml(vuln.riesgo_residual)}</span>
                 </div>
             `;
@@ -1198,7 +1219,7 @@ async function mostrarDetallePendiente(id) {
         if (vuln.tiempo_estimado) {
             html += `
                 <div style="display: flex; align-items: center; gap: 5px; font-size: 0.85rem;">
-                    <span style="font-weight: 600;">⏱️</span>
+                    <span style="font-weight: 600;"><i class="fas fa-clock"></i></span>
                     <span>${escapeHtml(vuln.tiempo_estimado)}</span>
                 </div>
             `;
@@ -1210,13 +1231,13 @@ async function mostrarDetallePendiente(id) {
             
             <!-- Equipo -->
             <div style="margin-bottom: 15px; padding: 8px 0; border-bottom: 1px solid var(--border-color);">
-                <span style="font-weight: 600; color: var(--text-muted);">🖥️ Equipo:</span>
+                <span style="font-weight: 600; color: var(--text-muted);"><i class="fas fa-desktop"></i> Equipo:</span>
                 <span style="font-weight: 500;">${vuln.equipo_info ? escapeHtml(vuln.equipo_info.tipo) + ' ' + escapeHtml(vuln.equipo_info.caracteristica || '') : 'N/A'}</span>
             </div>
             
             <!-- Descripción -->
             <div style="margin-bottom: 15px;">
-                <div style="font-weight: 600; color: var(--text-muted); margin-bottom: 5px;">📝 Descripción</div>
+                <div style="font-weight: 600; color: var(--text-muted); margin-bottom: 5px;"><i class="fas fa-align-left"></i> Descripción</div>
                 <div style="background: var(--bg); padding: 12px; border-radius: 8px; line-height: 1.6;">
                     ${escapeHtml(vuln.descripcion)}
                 </div>
@@ -1227,7 +1248,7 @@ async function mostrarDetallePendiente(id) {
         if (vuln.impacto) {
             html += `
                 <div style="margin-bottom: 15px;">
-                    <div style="font-weight: 600; color: var(--text-muted); margin-bottom: 5px;">💥 Impacto</div>
+                    <div style="font-weight: 600; color: var(--text-muted); margin-bottom: 5px;"><i class="fas fa-bolt"></i> Impacto</div>
                     <div style="background: var(--bg); padding: 12px; border-radius: 8px; line-height: 1.6;">
                         ${escapeHtml(vuln.impacto)}
                     </div>
@@ -1239,7 +1260,7 @@ async function mostrarDetallePendiente(id) {
         if (vuln.plan_remediacion) {
             html += `
                 <div style="margin-bottom: 15px;">
-                    <div style="font-weight: 600; color: var(--text-muted); margin-bottom: 5px;">🔧 Plan de remediación</div>
+                    <div style="font-weight: 600; color: var(--text-muted); margin-bottom: 5px;"><i class="fas fa-wrench"></i> Plan de remediación</div>
                     <div style="background: var(--bg); padding: 12px; border-radius: 8px; line-height: 1.6;">
                         ${escapeHtml(vuln.plan_remediacion)}
                     </div>
@@ -1251,7 +1272,7 @@ async function mostrarDetallePendiente(id) {
         if (vuln.observaciones) {
             html += `
                 <div style="margin-bottom: 10px;">
-                    <div style="font-weight: 600; color: var(--text-muted); margin-bottom: 5px;">📝 Observaciones</div>
+                    <div style="font-weight: 600; color: var(--text-muted); margin-bottom: 5px;"><i class="fas fa-comment-alt"></i> Observaciones</div>
                     <div style="background: var(--bg); padding: 12px; border-radius: 8px; line-height: 1.6; font-size: 0.95rem;">
                         ${escapeHtml(vuln.observaciones)}
                     </div>
@@ -1303,20 +1324,20 @@ async function mostrarCompletadas() {
             
             html += `<div class="vuln-header" style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 8px;">`;
             if (codigo) {
-                html += `<span class="badge info">🔍 ${escapeHtml(codigo)}</span>`;
+                html += `<span class="badge info"><i class="fas fa-search"></i> ${escapeHtml(codigo)}</span>`;
             }
             if (criticidadDisplay) {
-                html += `<span class="badge ${criticidadClass}">⚠️ ${escapeHtml(criticidadDisplay)}</span>`;
+                html += `<span class="badge ${criticidadClass}"><i class="fas fa-exclamation-triangle"></i> ${escapeHtml(criticidadDisplay)}</span>`;
             }
-            html += `<span class="badge completada">✅ Completada</span>`;
+            html += `<span class="badge completada"><i class="fas fa-check-circle"></i> Completada</span>`;
             if (vuln.fecha_completada) {
-                html += `<span class="badge fecha">📅 ${escapeHtml(vuln.fecha_completada)}</span>`;
+                html += `<span class="badge fecha"><i class="fas fa-calendar-alt"></i> ${escapeHtml(vuln.fecha_completada)}</span>`;
             }
             html += `</div>`;
             
             if (equipoInfo && equipoInfo.tipo) {
                 html += `<div style="margin-bottom: 8px;">`;
-                html += `<span class="badge equipo-id">🖥️ ${escapeHtml(equipoInfo.tipo)} ${escapeHtml(equipoInfo.caracteristica || '')}</span>`;
+                html += `<span class="badge equipo-id"><i class="fas fa-desktop"></i> ${escapeHtml(equipoInfo.tipo)} ${escapeHtml(equipoInfo.caracteristica || '')}</span>`;
                 html += `</div>`;
             }
             
@@ -1418,11 +1439,318 @@ function toggleForm() {
     
     if (content.style.display === 'none' || content.style.display === '') {
         content.style.display = 'block';
-        btn.textContent = '▼';
+        btn.innerHTML = '<i class="fas fa-chevron-down"></i>';
         btn.style.transform = 'rotate(0deg)';
     } else {
         content.style.display = 'none';
-        btn.textContent = '▶';
+        btn.innerHTML = '<i class="fas fa-chevron-right"></i>';
         btn.style.transform = 'rotate(0deg)';
+    }
+}
+
+/**
+ * Variable global para almacenar el contexto del reporte a exportar
+ */
+let exportContextoActual = null;
+
+/**
+ * Abre el diálogo de exportación contextual según el módulo que lo invocó
+ */
+function abrirModalExportacion(modulo) {
+    const modal = document.getElementById('modalExportarReporte');
+    if (!modal) return;
+
+    const tituloEl = document.getElementById('exportModalTitulo');
+    const iconEl = document.getElementById('exportModalIcon');
+    const nombreEl = document.getElementById('exportModalNombreReporte');
+    const descEl = document.getElementById('exportModalDescripcion');
+    const detalleRegistrosEl = document.getElementById('exportModalDetalleRegistros');
+    const filtrosContainer = document.getElementById('exportModalFiltrosContainer');
+    
+    filtrosContainer.style.display = 'none';
+
+    if (modulo === 'equipos') {
+        exportContextoActual = {
+            urlBase: '/api/reportes/equipos/pdf',
+            nombreArchivo: 'Inventario_Activos_IT.pdf',
+            tipo: 'equipos'
+        };
+        tituloEl.innerHTML = '<i class="fas fa-server"></i> Exportar Inventario de Activos';
+        iconEl.innerHTML = '<i class="fas fa-server"></i>';
+        iconEl.style.background = '#f0fdf4';
+        iconEl.style.color = '#16a34a';
+        nombreEl.textContent = 'Inventario General de Activos IT';
+        descEl.textContent = 'Genera un documento PDF formal con la infraestructura completa de servidores, switches, firewalls, direccionamiento IP y criticidad asignada.';
+        detalleRegistrosEl.innerHTML = '<i class="fas fa-layer-group"></i> Alcance: <strong>Inventario Completo</strong>';
+    } 
+    else if (modulo === 'ejecutivo') {
+        exportContextoActual = {
+            urlBase: '/api/reportes/ejecutivo/pdf',
+            nombreArchivo: 'Informe_Ejecutivo_Seguridad.pdf',
+            tipo: 'ejecutivo'
+        };
+        tituloEl.innerHTML = '<i class="fas fa-chart-pie"></i> Exportar Informe Ejecutivo';
+        iconEl.innerHTML = '<i class="fas fa-chart-pie"></i>';
+        iconEl.style.background = '#eff6ff';
+        iconEl.style.color = '#2563eb';
+        nombreEl.textContent = 'Informe Ejecutivo de Ciberseguridad';
+        descEl.textContent = 'Resumen consolidado para comités y gerencia con el cálculo del Índice de Riesgo, métricas de efectividad en remediación y los activos con mayor nivel de exposición.';
+        detalleRegistrosEl.innerHTML = '<i class="fas fa-layer-group"></i> Alcance: <strong>Métricas & Dashboard</strong>';
+    }
+    else if (modulo === 'equipo_especifico') {
+        if (!equipoActual || !equipoActual.id) {
+            mostrarNotificacion('Seleccione un equipo para exportar su reporte', 'warning');
+            return;
+        }
+        const tipoNombre = `${equipoActual.tipo || 'Equipo'} ${equipoActual.caracteristica || ''}`.trim();
+        exportContextoActual = {
+            urlBase: `/api/reportes/vulnerabilidades/pdf?equipo_id=${equipoActual.id}`,
+            nombreArchivo: `Reporte_Vulns_${(equipoActual.tipo || 'Equipo').replace(/\s+/g, '_')}_${equipoActual.id}.pdf`,
+            tipo: 'equipo_especifico'
+        };
+        tituloEl.innerHTML = '<i class="fas fa-shield-alt"></i> Exportar Vulnerabilidades del Activo';
+        iconEl.innerHTML = '<i class="fas fa-shield-alt"></i>';
+        iconEl.style.background = '#fef2f2';
+        iconEl.style.color = '#dc2626';
+        nombreEl.textContent = `Reporte de Vulnerabilidades: ${tipoNombre}`;
+        descEl.textContent = `Lista de vulnerabilidades identificadas exclusivamente para este activo, sus responsables asignados, avance de mitigación y planes de remediación.`;
+        detalleRegistrosEl.innerHTML = `<i class="fas fa-layer-group"></i> Activo: <strong>${tipoNombre}</strong>`;
+    }
+    else if (modulo === 'pendientes') {
+        exportContextoActual = {
+            urlBase: '/api/reportes/vulnerabilidades/pdf?estado=pendientes',
+            nombreArchivo: 'Reporte_Vulnerabilidades_Pendientes.pdf',
+            tipo: 'pendientes'
+        };
+        tituloEl.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Exportar Vulnerabilidades Pendientes';
+        iconEl.innerHTML = '<i class="fas fa-exclamation-triangle"></i>';
+        iconEl.style.background = '#fffbeb';
+        iconEl.style.color = '#d97706';
+        nombreEl.textContent = 'Vulnerabilidades Pendientes de Atención';
+        descEl.textContent = 'Auditoría de hallazgos activos que requieren asignación de responsable, fecha objetivo o ejecución del plan de remediación.';
+        detalleRegistrosEl.innerHTML = '<i class="fas fa-layer-group"></i> Alcance: <strong>Solo Pendientes</strong>';
+    }
+    else if (modulo === 'completadas') {
+        exportContextoActual = {
+            urlBase: '/api/reportes/vulnerabilidades/pdf?estado=completadas',
+            nombreArchivo: 'Reporte_Vulnerabilidades_Completadas.pdf',
+            tipo: 'completadas'
+        };
+        tituloEl.innerHTML = '<i class="fas fa-check-circle"></i> Exportar Vulnerabilidades Completadas';
+        iconEl.innerHTML = '<i class="fas fa-check-circle"></i>';
+        iconEl.style.background = '#f0fdf4';
+        iconEl.style.color = '#16a34a';
+        nombreEl.textContent = 'Vulnerabilidades Remediadas y Cerradas';
+        descEl.textContent = 'Histórico de vulnerabilidades mitigadas, verificadas y resueltas satisfactoriamente con sus fechas de cierre.';
+        detalleRegistrosEl.innerHTML = '<i class="fas fa-layer-group"></i> Alcance: <strong>Solo Completadas</strong>';
+    }
+    else if (modulo === 'nist') {
+        exportContextoActual = {
+            urlBase: '/api/reportes/nist/pdf',
+            nombreArchivo: 'Evaluacion_NIST_CSF.pdf',
+            tipo: 'nist'
+        };
+        tituloEl.innerHTML = '<i class="fas fa-certificate"></i> Exportar Evaluación NIST CSF';
+        iconEl.innerHTML = '<i class="fas fa-certificate"></i>';
+        iconEl.style.background = '#eef2ff';
+        iconEl.style.color = '#6366f1';
+        nombreEl.textContent = 'Informe Oficial de Ciberseguridad NIST CSF 2.0';
+        descEl.textContent = 'Auditoría de madurez y cumplimiento según las 6 funciones: Gobernar, Identificar, Proteger, Detectar, Responder y Recuperar, con plan de acción prioritario.';
+        detalleRegistrosEl.innerHTML = '<i class="fas fa-layer-group"></i> Alcance: <strong>Marco NIST CSF 2.0</strong>';
+    }
+
+    modal.style.display = 'block';
+}
+
+/**
+ * Descarga o visualiza reportes PDF de manera fluida y asíncrona
+ * sin parpadeos de pestañas en blanco y con feedback visual al usuario.
+ */
+async function descargarReportePDF(url, nombreSugerido, btnElement = null, abrirPestana = false) {
+    let originalHtml = '';
+    if (btnElement) {
+        originalHtml = btnElement.innerHTML;
+        btnElement.disabled = true;
+        btnElement.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Procesando...';
+    } else {
+        mostrarNotificacion('Procesando reporte PDF...', 'info');
+    }
+
+    try {
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error(`Respuesta del servidor no válida (${response.status})`);
+        }
+        
+        const blob = await response.blob();
+        const blobUrl = window.URL.createObjectURL(blob);
+        
+        if (abrirPestana) {
+            window.open(blobUrl, '_blank');
+            mostrarNotificacion('Reporte abierto en visor PDF', 'success');
+        } else {
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = blobUrl;
+            a.download = nombreSugerido || 'Reporte_Seguridad_IT.pdf';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            mostrarNotificacion('✓ Reporte PDF descargado con éxito', 'success');
+        }
+        
+        // Cerrar el modal de exportación si está abierto
+        const exportModal = document.getElementById('modalExportarReporte');
+        if (exportModal) exportModal.style.display = 'none';
+
+        // Liberar memoria del blob después de 30 segundos
+        setTimeout(() => window.URL.revokeObjectURL(blobUrl), 30000);
+    } catch (error) {
+        console.error('Error al generar PDF:', error);
+        mostrarNotificacion('Error al procesar el reporte PDF: ' + error.message, 'error');
+    } finally {
+        if (btnElement) {
+            btnElement.disabled = false;
+            btnElement.innerHTML = originalHtml;
+        }
+    }
+}
+
+/**
+ * Carga y renderiza la evaluación de ciberseguridad NIST CSF 2.0
+ */
+async function cargarEvaluacionNIST() {
+    try {
+        const response = await fetch('/api/nist/evaluacion');
+        if (!response.ok) throw new Error('Error al obtener datos NIST');
+        const data = await response.json();
+
+        // 1. Resumen superior
+        const tierTitulo = document.getElementById('nistTierTitulo');
+        const tierDesc = document.getElementById('nistTierDesc');
+        const scoreGlobal = document.getElementById('nistScoreGlobal');
+        const barraGlobal = document.getElementById('nistBarraGlobal');
+        const totalEquipos = document.getElementById('nistTotalEquipos');
+        const totalVulns = document.getElementById('nistTotalVulns');
+        const nivelLabel = document.getElementById('nistNivelLabel');
+
+        if (tierTitulo) tierTitulo.textContent = data.tier || 'Tier 1';
+        if (tierDesc) tierDesc.textContent = data.tier_desc || '';
+        if (scoreGlobal) scoreGlobal.textContent = `${data.score_global}%`;
+        if (barraGlobal) barraGlobal.style.width = `${Math.min(100, data.score_global)}%`;
+        if (totalEquipos) totalEquipos.textContent = data.total_equipos || 0;
+        if (totalVulns) totalVulns.textContent = data.total_vulnerabilidades || 0;
+        if (nivelLabel) nivelLabel.textContent = `Nivel ${data.tier_nivel || 1} de 4 (Tiers NIST)`;
+
+        // Colores de madurez global
+        if (scoreGlobal) {
+            if (data.score_global >= 80) scoreGlobal.style.color = '#16a34a';
+            else if (data.score_global >= 60) scoreGlobal.style.color = '#2563eb';
+            else if (data.score_global >= 40) scoreGlobal.style.color = '#f59e0b';
+            else scoreGlobal.style.color = '#dc2626';
+        }
+
+        // 2. Renderizar las 6 Funciones con paleta corporativa armonizada
+        const funcContainer = document.getElementById('nistFuncionesContainer');
+        if (funcContainer && data.funciones) {
+            funcContainer.innerHTML = '';
+            data.funciones.forEach(f => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.style.cssText = 'margin: 0; padding: 20px; border: 1px solid var(--card-border); background: var(--panel); display: flex; flex-direction: column; justify-content: space-between; box-shadow: var(--shadow-sm);';
+                
+                const score = f.score || 0;
+                let estadoLabel = 'Inicial';
+                let badgeBg = '#fef2f2';
+                let badgeColor = '#dc2626';
+                let barColor = '#dc2626';
+
+                if (score >= 75) {
+                    estadoLabel = 'Optimizado';
+                    badgeBg = '#f0fdf4';
+                    badgeColor = '#16a34a';
+                    barColor = '#16a34a';
+                } else if (score >= 50) {
+                    estadoLabel = 'Gestionado';
+                    badgeBg = '#eff6ff';
+                    badgeColor = '#2563eb';
+                    barColor = '#2563eb';
+                } else if (score >= 30) {
+                    estadoLabel = 'En Desarrollo';
+                    badgeBg = '#fffbeb';
+                    badgeColor = '#d97706';
+                    barColor = '#d97706';
+                }
+
+                const iconoValido = f.icono || 'fas fa-shield-alt';
+
+                card.innerHTML = `
+                    <div>
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px;">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div style="width: 42px; height: 42px; border-radius: 8px; background: var(--bg); border: 1px solid var(--card-border); color: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 1.25rem;">
+                                    <i class="${iconoValido}"></i>
+                                </div>
+                                <div>
+                                    <h3 style="margin: 0; font-size: 1.05rem; font-weight: 600; color: var(--text);">${f.nombre}</h3>
+                                    <span style="font-size: 0.75rem; color: var(--muted); font-weight: 600; text-transform: uppercase;">Función ${f.codigo}</span>
+                                </div>
+                            </div>
+                            <span style="font-size: 0.75rem; font-weight: 700; background: ${badgeBg}; color: ${badgeColor}; padding: 4px 10px; border-radius: 12px;">
+                                ● ${estadoLabel}
+                            </span>
+                        </div>
+                        <p style="font-size: 0.85rem; color: var(--muted); line-height: 1.45; margin-bottom: 16px;">
+                            ${f.descripcion}
+                        </p>
+                    </div>
+                    <div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; font-size: 0.85rem;">
+                            <span style="color: var(--muted); font-weight: 500;">Nivel de Cumplimiento</span>
+                            <strong style="color: var(--text); font-size: 1rem;">${score}%</strong>
+                        </div>
+                        <div style="background: var(--bg); border: 1px solid var(--card-border); height: 8px; border-radius: 4px; overflow: hidden;">
+                            <div style="height: 100%; width: ${Math.min(100, score)}%; background: ${barColor}; border-radius: 4px; transition: width 0.6s ease;"></div>
+                        </div>
+                    </div>
+                `;
+                funcContainer.appendChild(card);
+            });
+        }
+
+        // 3. Renderizar Recomendaciones
+        const recomContainer = document.getElementById('nistRecomendacionesContainer');
+        if (recomContainer && data.recomendaciones) {
+            recomContainer.innerHTML = '';
+            data.recomendaciones.forEach(r => {
+                const item = document.createElement('div');
+                item.style.cssText = 'display: flex; align-items: flex-start; gap: 14px; padding: 14px; border-radius: 8px; background: var(--bg); border: 1px solid var(--card-border); margin-bottom: 10px;';
+                
+                let pBg = '#fef2f2', pColor = '#dc2626';
+                if (r.prioridad === 'Media') { pBg = '#fffbeb'; pColor = '#d97706'; }
+                else if (r.prioridad === 'Baja') { pBg = '#f0fdf4'; pColor = '#16a34a'; }
+
+                item.innerHTML = `
+                    <div style="width: 36px; height: 36px; border-radius: 6px; background: ${pBg}; color: ${pColor}; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0;">
+                        <i class="${r.icono}"></i>
+                    </div>
+                    <div style="flex: 1;">
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; flex-wrap: wrap; gap: 6px;">
+                            <h4 style="margin: 0; font-size: 0.95rem; color: var(--text);">${r.titulo}</h4>
+                            <span style="font-size: 0.75rem; font-weight: 700; background: ${pBg}; color: ${pColor}; padding: 2px 8px; border-radius: 10px;">
+                                Prioridad ${r.prioridad} • ${r.funcion}
+                            </span>
+                        </div>
+                        <p style="margin: 0; font-size: 0.85rem; color: var(--muted); line-height: 1.4;">
+                            ${r.detalle}
+                        </p>
+                    </div>
+                `;
+                recomContainer.appendChild(item);
+            });
+        }
+    } catch (error) {
+        console.error('Error al cargar evaluación NIST:', error);
+        mostrarNotificacion('No se pudo cargar la evaluación NIST: ' + error.message, 'error');
     }
 }

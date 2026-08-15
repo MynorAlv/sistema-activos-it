@@ -22,6 +22,7 @@
                         <ul>
                             <li><a href="{{ url_for('index') }}" class="{{ 'active' if request.path == url_for('index') else '' }}"><i class="fas fa-desktop"></i> Equipos</a></li>
                             <li><a href="{{ url_for('dashboard_page') }}" class="{{ 'active' if request.path == url_for('dashboard_page') else '' }}"><i class="fas fa-chart-line"></i> Dashboard</a></li>
+                            <li><a href="{{ url_for('nist_page') }}" class="{{ 'active' if request.path == url_for('nist_page') else '' }}"><i class="fas fa-certificate"></i> Evaluación NIST</a></li>
                             <li><a href="#" id="showPendientes"><i class="fas fa-exclamation-triangle"></i> Pendientes</a></li>
                             <li><a href="#" id="showCompletadas"><i class="fas fa-check-circle"></i> Completadas</a></li>
                         </ul>
@@ -59,9 +60,12 @@
                 <div id="vulnerabilidadesContainer">
                     <p class="text-muted">No hay vulnerabilidades registradas para este equipo.</p>
                 </div>
-                <div style="margin-top: 15px;">
+                <div style="margin-top: 15px; display: flex; gap: 10px; flex-wrap: wrap;">
                     <button id="consultarVulnerabilidadesBtn" class="btn primary">
                         <i class="fas fa-brain"></i> Consultar Vulnerabilidades con IA 
+                    </button>
+                    <button onclick="abrirModalExportacion('equipo_especifico')" class="btn info" style="display: inline-flex; align-items: center; gap: 6px;">
+                        <i class="fas fa-file-pdf"></i> Exportar Reporte
                     </button>
                 </div>
             </div>
@@ -185,12 +189,19 @@
 
     <!-- Modal de Vulnerabilidades Pendientes -->
     <div id="pendientesModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2><i class="fas fa-exclamation-triangle"></i> Vulnerabilidades Pendientes</h2>
-                <button class="modal-close">&times;</button>
+        <div class="modal-content" style="max-width: 850px;">
+            <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; padding: 16px 20px;">
+                <h2 style="margin: 0; font-size: 1.15rem; display: flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-exclamation-triangle" style="color: var(--danger);"></i> Vulnerabilidades Pendientes
+                </h2>
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <button onclick="abrirModalExportacion('pendientes')" class="btn primary" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; font-size: 0.85rem; font-weight: 600; cursor: pointer;">
+                        <i class="fas fa-file-pdf"></i> Exportar Reporte
+                    </button>
+                    <button class="modal-close" style="font-size: 1.6rem; cursor: pointer;">&times;</button>
+                </div>
             </div>
-            <div class="modal-body">
+            <div class="modal-body" style="padding: 20px;">
                 <div id="pendientesContainer">
                     <p class="text-muted">No hay vulnerabilidades pendientes.</p>
                 </div>
@@ -200,12 +211,19 @@
 
     <!-- Modal de Vulnerabilidades Completadas -->
     <div id="completadasModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2><i class="fas fa-check-circle"></i> Vulnerabilidades Completadas</h2>
-                <button class="modal-close">&times;</button>
+        <div class="modal-content" style="max-width: 850px;">
+            <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; padding: 16px 20px;">
+                <h2 style="margin: 0; font-size: 1.15rem; display: flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-check-circle" style="color: var(--success);"></i> Vulnerabilidades Completadas
+                </h2>
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <button onclick="abrirModalExportacion('completadas')" class="btn primary" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; font-size: 0.85rem; font-weight: 600; cursor: pointer;">
+                        <i class="fas fa-file-pdf"></i> Exportar Reporte
+                    </button>
+                    <button class="modal-close" style="font-size: 1.6rem; cursor: pointer;">&times;</button>
+                </div>
             </div>
-            <div class="modal-body">
+            <div class="modal-body" style="padding: 20px;">
                 <div id="completadasContainer">
                     <p class="text-muted">No hay vulnerabilidades completadas.</p>
                 </div>
@@ -302,6 +320,72 @@
             <div class="modal-body">
                 <div id="detallePendienteContainer">
                     <p class="text-muted">Cargando detalle...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Contextual de Exportación y Vista Previa de Reportes -->
+    <div id="modalExportarReporte" class="modal" style="z-index: 10005;">
+        <div class="modal-content" style="max-width: 580px;">
+            <div class="modal-header">
+                <h2 id="exportModalTitulo"><i class="fas fa-file-pdf"></i> Exportar Reporte</h2>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div style="background: var(--bg); border: 1px solid var(--card-border); border-radius: 8px; padding: 16px; margin-bottom: 16px;">
+                    <div style="display: flex; align-items: flex-start; gap: 14px;">
+                        <div id="exportModalIcon" style="width: 44px; height: 44px; border-radius: 8px; background: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; flex-shrink: 0;">
+                            <i class="fas fa-file-pdf"></i>
+                        </div>
+                        <div>
+                            <h3 id="exportModalNombreReporte" style="margin: 0 0 4px 0; font-size: 1.1rem; color: var(--text);">Inventario de Activos IT</h3>
+                            <p id="exportModalDescripcion" style="margin: 0; font-size: 0.85rem; color: var(--muted); line-height: 1.4;">
+                                Genera un documento con la lista completa de servidores y dispositivos registrados.
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--card-border); display: flex; gap: 16px; flex-wrap: wrap; font-size: 0.8rem; color: var(--muted);">
+                        <span><i class="fas fa-file-alt"></i> Formato: <strong>PDF Vectorial</strong></span>
+                        <span id="exportModalDetalleRegistros"><i class="fas fa-layer-group"></i> Alcance: <strong>Todos los registros</strong></span>
+                        <span><i class="fas fa-shield-alt"></i> Clasificación: <strong>Confidencial</strong></span>
+                    </div>
+                </div>
+
+                <!-- Filtros opcionales específicos para vulnerabilidades -->
+                <div id="exportModalFiltrosContainer" style="display: none; margin-bottom: 16px; background: var(--panel); border: 1px solid var(--card-border); padding: 12px; border-radius: 8px;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <div class="form-group" style="margin: 0;">
+                            <label for="exportModalFiltroEstado" style="font-size: 0.8rem; margin-bottom: 4px;">Filtrar por Estado:</label>
+                            <select id="exportModalFiltroEstado" style="width: 100%; padding: 6px 10px; font-size: 0.85rem;">
+                                <option value="">Todas</option>
+                                <option value="pendientes">Pendientes</option>
+                                <option value="completadas">Completadas</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="margin: 0;">
+                            <label for="exportModalFiltroCriticidad" style="font-size: 0.8rem; margin-bottom: 4px;">Filtrar por Criticidad:</label>
+                            <select id="exportModalFiltroCriticidad" style="width: 100%; padding: 6px 10px; font-size: 0.85rem;">
+                                <option value="">Todas</option>
+                                <option value="Alta">Alta</option>
+                                <option value="Media">Media</option>
+                                <option value="Baja">Baja</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 15px;">
+                    <button class="btn secondary modal-close" style="padding: 8px 16px;">
+                        Cancelar
+                    </button>
+                    <button id="exportModalBtnVer" class="btn info" style="display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px;">
+                        <i class="fas fa-eye"></i> Previsualizar
+                    </button>
+                    <button id="exportModalBtnDescargar" class="btn primary" style="display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px;">
+                        <i class="fas fa-download"></i> Descargar PDF
+                    </button>
                 </div>
             </div>
         </div>

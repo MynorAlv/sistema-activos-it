@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, send_file
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import case, func
 from datetime import datetime
@@ -6,6 +6,13 @@ from groq import Groq
 import os
 import json
 from dotenv import load_dotenv
+from services.pdf_generator import (
+    generar_pdf_equipos,
+    generar_pdf_vulnerabilidades,
+    generar_pdf_dashboard,
+    generar_pdf_nist
+)
+from services.nist_evaluator import evaluar_postura_nist
 
 # Cargar variables de entorno desde .env
 load_dotenv()
@@ -258,6 +265,10 @@ def index():
 def dashboard_page():
     return render_template('dashboard.html')
 
+@app.route('/nist')
+def nist_page():
+    return render_template('nist.html')
+
 # API: Obtener todos los equipos
 @app.route('/api/equipos', methods=['GET'])
 def get_equipos():
@@ -423,9 +434,10 @@ def get_vulnerabilidades(id):
     equipo = Equipo.query.get_or_404(id)
     return jsonify([v.to_dict() for v in equipo.vulnerabilidades])
 
-# API: Dashboard de riesgos y activos
-@app.route('/api/dashboard', methods=['GET'])
-def get_dashboard():
+def calcular_datos_dashboard():
+    """
+    Función auxiliar para calcular todas las métricas del dashboard de riesgo
+    """
     equipos = Equipo.query.all()
     total_equipos = len(equipos)
     
@@ -506,7 +518,7 @@ def get_dashboard():
     total_vulnerabilidades = pendientes + completadas
     porcentaje_corregidas = round((completadas / total_vulnerabilidades) * 100, 2) if total_vulnerabilidades else 0.0
 
-    return jsonify({
+    return {
         'total_equipos': total_equipos,
         'criticos': altos,
         'medios': medios,
@@ -519,7 +531,100 @@ def get_dashboard():
         'top_activos': top_assets_data,
         'total_score': total_score,
         'max_possible_score': max_possible_score
-    })
+    }
+
+# API: Dashboard de riesgos y activos (JSON)
+@app.route('/api/dashboard', methods=['GET'])
+def get_dashboard():
+    datos = calcular_datos_dashboard()
+    return jsonify(datos)
+
+# API: Reporte PDF de Equipos
+@app.route('/api/reportes/equipos/pdf', methods=['GET'])
+def descargar_reporte_equipos_pdf():
+    equipos = Equipo.query.order_by(Equipo.fecha_creacion.desc()).all()
+    pdf_buffer = generar_pdf_equipos(equipos)
+    fecha_archivo = datetime.now().strftime('%Y%m%d_%H%M')
+    as_attachment = request.args.get('view') != '1' and request.args.get('disposition') != 'inline'
+    return send_file(
+        pdf_buffer,
+        mimetype='application/pdf',
+        as_attachment=as_attachment,
+        download_name=f'Reporte_Equipos_{fecha_archivo}.pdf'
+    )
+
+# API: Reporte PDF de Vulnerabilidades
+@app.route('/api/reportes/vulnerabilidades/pdf', methods=['GET'])
+def descargar_reporte_vulnerabilidades_pdf():
+    query = Vulnerabilidad.query
+    estado = request.args.get('estado')
+    equipo_id = request.args.get('equipo_id', type=int)
+    criticidad = request.args.get('criticidad')
+    
+    titulo = "Reporte de Vulnerabilidades y Remediación"
+    if estado == 'pendientes':
+        query = query.filter_by(completada=False)
+        titulo = "Reporte de Vulnerabilidades Pendientes"
+    elif estado == 'completadas':
+        query = query.filter_by(completada=True)
+        titulo = "Reporte de Vulnerabilidades Completadas"
+        
+    if criticidad:
+        query = query.filter_by(criticidad=criticidad)
+    if equipo_id:
+        query = query.filter_by(id_equipo=equipo_id)
+        equipo = Equipo.query.get(equipo_id)
+        if equipo:
+            titulo += f" — {equipo.tipo} {equipo.caracteristica}"
+
+    vulnerabilidades = query.order_by(Vulnerabilidad.fecha_creacion.desc()).all()
+    pdf_buffer = generar_pdf_vulnerabilidades(vulnerabilidades, titulo=titulo)
+    fecha_archivo = datetime.now().strftime('%Y%m%d_%H%M')
+    as_attachment = request.args.get('view') != '1' and request.args.get('disposition') != 'inline'
+    return send_file(
+        pdf_buffer,
+        mimetype='application/pdf',
+        as_attachment=as_attachment,
+        download_name=f'Reporte_Vulnerabilidades_{fecha_archivo}.pdf'
+    )
+
+# API: Reporte PDF Ejecutivo del Dashboard
+@app.route('/api/reportes/ejecutivo/pdf', methods=['GET'])
+def descargar_reporte_ejecutivo_pdf():
+    datos = calcular_datos_dashboard()
+    pdf_buffer = generar_pdf_dashboard(datos)
+    fecha_archivo = datetime.now().strftime('%Y%m%d_%H%M')
+    as_attachment = request.args.get('view') != '1' and request.args.get('disposition') != 'inline'
+    return send_file(
+        pdf_buffer,
+        mimetype='application/pdf',
+        as_attachment=as_attachment,
+        download_name=f'Informe_Ejecutivo_Seguridad_{fecha_archivo}.pdf'
+    )
+
+# API: Evaluación NIST CSF 2.0 (JSON)
+@app.route('/api/nist/evaluacion', methods=['GET'])
+def get_evaluacion_nist():
+    equipos = Equipo.query.all()
+    vulnerabilidades = Vulnerabilidad.query.all()
+    datos_nist = evaluar_postura_nist(equipos, vulnerabilidades)
+    return jsonify(datos_nist)
+
+# API: Reporte PDF de Evaluación NIST CSF
+@app.route('/api/reportes/nist/pdf', methods=['GET'])
+def descargar_reporte_nist_pdf():
+    equipos = Equipo.query.all()
+    vulnerabilidades = Vulnerabilidad.query.all()
+    datos_nist = evaluar_postura_nist(equipos, vulnerabilidades)
+    pdf_buffer = generar_pdf_nist(datos_nist)
+    fecha_archivo = datetime.now().strftime('%Y%m%d_%H%M')
+    as_attachment = request.args.get('view') != '1' and request.args.get('disposition') != 'inline'
+    return send_file(
+        pdf_buffer,
+        mimetype='application/pdf',
+        as_attachment=as_attachment,
+        download_name=f'Evaluacion_NIST_CSF_{fecha_archivo}.pdf'
+    )
 
 # API: Obtener vulnerabilidades pendientes con información de equipo
 @app.route('/api/vulnerabilidades/pendientes', methods=['GET'])

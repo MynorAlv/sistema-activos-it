@@ -1,1 +1,33 @@
+# Entornos y variables sensibles
 .env
+.env.local
+.env.*.local
+
+# Python / Bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Entornos virtuales
+venv/
+.venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# IDEs y Editores
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Logs y bases de datos locales
+*.log
+*.sqlite3
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
