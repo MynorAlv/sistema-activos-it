@@ -554,9 +554,10 @@ tbody tr:last-child td {
     color: var(--muted);
     transition: var(--transition);
     padding: 0 8px;
+    line-height: 1;
 }
 
-.modal-close:hover {
+.modal-header .modal-close:hover {
     color: var(--text);
     transform: rotate(90deg);
 }
